@@ -1,8 +1,21 @@
-// DOTENV require function-------------------------------------------------------------------------------------------------------------
+// DOTENV require function----------------------------------------------------------------------------------------------------------
 require('dotenv').config()
 
-// SPOTIFY SEARCH FUNCTION (installed in Terminal so doesn't need a require function to make the API call)--------------------------
-search: function({type: 'artist OR album OR track', query: 'My search query', limit: 20}, callback);
+// SPOTIFY require function---------------------------------------------------------------------------------------------------------
+var Spotify = require('node-spotify-api');
+ 
+var spotify = new Spotify({
+  id: "SPOTIFY_ID",
+  secret: "SPOTIFY_SECRET"
+});
+ 
+spotify.search({ type: 'track', query: 'All the Small Things' }, function(err, data) {
+  if (err) {
+    return console.log('Error occurred: ' + err);
+  }
+ 
+console.log(data); 
+});
 
 // OMDB require function------------------------------------------------------------------------------------------------------------
 var request = require('request');
@@ -13,9 +26,10 @@ request(omdbAPI, function (error, response, body) {
   console.log('body:', body); // Print the HTML for the Google homepage.
 });
 
-// OMDB require function------------------------------------------------------------------------------------------------------------
+
+// BANDSINTOWN require function-----------------------------------------------------------------------------------------------------
 var request = require('request');
-var bandsInTownAPI = 'rest.bandsintown.com/?artists/{artistname}/events&apikey=3cc8f67ce1372e99e403cc28219f8fad'
+var bandsInTownAPI = 'rest.bandsintown.com/?artists" + artist + "/events?app_id=3cc8f67ce1372e99e403cc28219f8fad'
 request(bandsInTownAPI, function (error, response, body) {
   console.log('error:', error); // Print the error if one occurred
   console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
