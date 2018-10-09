@@ -31,7 +31,7 @@ var Spotify = require("./keys.js");
 // access spotify keys in .env file
 var spotify = new Spotify(keys.spotify);
 
-
+// code from spotify api documentation--not sure if i need it
 spotify.search({ 
     type: 'track', 
     query: 'All the Small Things' 
@@ -45,13 +45,20 @@ spotify.search({
 
 
 // OMDB require function------------------------------------------------------------------------------------------------------------
-var omdbAPI = 'http://www.omdbapi.com/?apikey=trilogy&'
+var omdbAPI = 'http://www.omdbapi.com/?t=' + userQuery + '&plot=short&apikey=trilogy'
 
-// request the API from OMDB
+// implement the OMDB API call request
 request(omdbAPI, function (error, response, body) {
-  console.log('error:', error); // Print the error if one occurred
-  console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-  console.log('body:', body); // Print the HTML for the Google homepage.
+    if (!error && response.statusCode === 200) {
+      console.log("The movie's release year is: " + JSON.parse(body).Release);
+      console.log("The movie's IMDB rating is: " + JSON.parse(body).imdbRating);
+      console.log("The movie's Rotten Tomatoes rating is: " + JSON.parse(body).Ratings[1].Value);
+      console.log("The movie was filmed in: " + JSON.parse(body).Country);
+      console.log("The movie is in: " + JSON.parse(body).Language);
+      console.log("The plot of this movie is: " + JSON.parse(body).Plot);
+      console.log("The actors in this movie include, but are not limited to: " + JSON.parse(body).Actors)
+    }, else {
+      console.log('Error:', error); // Print the error if one occurred
 });
 
 
@@ -59,38 +66,49 @@ request(omdbAPI, function (error, response, body) {
 // create bandsintownURL that uses the userQuery to complete the URL
 var bandsintownURL = 'https://rest.bandsintown.com/artists/' + userQuery + '/events?app_id=3cc8f67ce1372e99e403cc28219f8fad'
 
-// use the user's input to get the name of the venue, venue location, date of the Event (using moment to format this as "MM/DD/YYYY")
+// implement the bandintown API call request
 request(bandsintownURL, function (error, response, body) {
-  console.log('error:', error); // Print the error if one occurred
-  console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-  console.log('body:', body); // Print the HTML for the Google homepage.
+  if (!error && response.statusCode === 200) {
+    console.log("The " + userQuery + " concert is at: " + JSON.parse(body).venue);
+    console.log("The concert location is in: " + JSON.parse(body).venue.city + ", " + venue.region + " " + venue.country);
+    console.log("The " + userQuery + " concert starts at: " + JSON.parse(body).datetime);
+  }, else {
+    console.log('Error:', error); // Print the error if one occurred
 });
 
 
 // COMMANDS-----------------------------------------------------------------------------------------------------------------------
-// "concert-this" command (use the userQuery to get the name and location of the venue, and date of the Event (use moment to format date: "MM/DD/YYYY")
+// "CONCERT-THIS" command (use the userQuery to get the name and location of the venue, and date of the Event (use moment to format date: "MM/DD/YYYY")
 function concert-this(venueName, venueLocation, dateTime) {
     this.venueName = "venue.name";
     this.venueLocation = "venue.city" + ", " + "venue.region" + " " + "venue.country";
     this.dateTime = datetime;
 }
 
-// "spotify-this-song" command (use the user's input to get the artist, song name, a preview link of the song from Spotify, and the album)
+// "SPOTIFY-THIS-SONG" command (use the user's input to get the artist, song name, a preview link of the song from Spotify, and the album)
 function spotify-this-song(artist, songName, spotifyPreview, albumName) {
-  this.artist = "items.album.artists.name";
-  this.songName = "tracks.items.name";
-  this.spotifyPreview =  "items.preview_url";
-  this.albumName =  "items.album.name";
+    this.artist = "items.album.artists.name";
+    this.songName = "tracks.items.name";
+    this.spotifyPreview =  "items.preview_url";
+    this.albumName =  "items.album.name";
 }
 
-// "movie-this" command (use the user's input to get the movie title, release year, IMDB and Rotten Tomatoes ratings, country where produced, and language, plot, and actors in the movie.
+// "MOVIE-THIS" command (use the user's input to get the movie title, release year, IMDB and Rotten Tomatoes ratings, country where produced, and language, plot, and actors in the movie.
 function movie-this(title, releaseYear, ratingIMDB, ratingRotTom, country, language, plot, actors) {
-  this.title = "";
-  this.releaseYear = "";
-  this.ratingIMDB =  "";
-  this.ratingRotTom =  "";
-  this.country = "";
-  this.language = "";
-  this.plot = "";
-  this.actors = "";
+    this.title = "Title";
+    this.releaseYear = "Release";
+    this.ratingIMDB =  "imdbRating";
+    this.ratingRotTom =  "";
+    this.country = "Country";
+    this.language = "Language";
+    this.plot = "Plot";
+    this.actors = "Actors";
 }
+
+
+// "DO-WHAT-IT-SAYS" command (use the song name from the random.txt file to choose what to display for the user)
+function do-what-it-says() {
+    console.log(spotify-this-song(random.txt));
+};
+
+
