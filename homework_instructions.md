@@ -98,7 +98,7 @@ X__8. Add the code required to import the `keys.js` file and store it in a varia
     var spotify = new Spotify(keys.spotify);
     ```
 
-___9. Make it so liri.js can take in one of the following commands:
+X__9. Make it so liri.js can take in one of the following commands:
 
    * `concert-this`
    * `spotify-this-song`
@@ -107,7 +107,7 @@ ___9. Make it so liri.js can take in one of the following commands:
 
 ### What Each Command Should Do
 
-___1. `node liri.js concert-this <artist/band name here>`
+X__1. `node liri.js concert-this <artist/band name here>`
 
    * This will search the Bands in Town Artist Events API (`"https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp"`) for an artist and render the following information about each event to the terminal:
 
@@ -115,7 +115,7 @@ ___1. `node liri.js concert-this <artist/band name here>`
      * Venue location
      * Date of the Event (use moment to format this as "MM/DD/YYYY")
 
-___2. `node liri.js spotify-this-song '<song name here>'`
+X__2. `node liri.js spotify-this-song '<song name here>'`
 
    * This will show the following information about the song in your terminal/bash window
 
@@ -124,9 +124,9 @@ ___2. `node liri.js spotify-this-song '<song name here>'`
      * A preview link of the song from Spotify
      * The album that the song is from
 
-   ___ If no song is provided then your program will default to "The Sign" by Ace of Base.
+   X__ If no song is provided then your program will default to "The Sign" by Ace of Base.
 
-   ___You will utilize the [node-spotify-api](https://www.npmjs.com/package/node-spotify-api) package in order to retrieve song information from the Spotify API.
+   X__You will utilize the [node-spotify-api](https://www.npmjs.com/package/node-spotify-api) package in order to retrieve song information from the Spotify API.
 
    X__ The Spotify API requires you sign up as a developer to generate the necessary credentials. You can follow these steps in order to generate a **client id** and **client secret**:
 
@@ -138,7 +138,7 @@ ___2. `node liri.js spotify-this-song '<song name here>'`
 
    X__ Step Four: On the next screen, scroll down to where you see your client id and client secret. Copy these values down somewhere, you'll need them to use the Spotify API and the [node-spotify-api package](https://www.npmjs.com/package/node-spotify-api).
 
-___3. `node liri.js movie-this '<movie name here>'`
+X__3. `node liri.js movie-this '<movie name here>'`
 
    * This will output the following information to your terminal/bash window:
 
@@ -161,7 +161,7 @@ ___3. `node liri.js movie-this '<movie name here>'`
 
    * You'll use the request package to retrieve data from the OMDB API. Like all of the in-class activities, the OMDB API requires an API key. You may use `trilogy`.
 
-___4. `node liri.js do-what-it-says`
+X__4. `node liri.js do-what-it-says`
 
    * Using the `fs` Node package, LIRI will take the text inside of random.txt and then use it to call one of LIRI's commands.
 
@@ -170,7 +170,7 @@ ___4. `node liri.js do-what-it-says`
      * Edit the text in random.txt to test out the feature for movie-this and my-tweets
 
 
-___Psuedocode whatever isn't finished, update readme file, take screenshots, upload all to gitHub, and submit through BCS
+X__Psuedocode whatever isn't finished, update readme file, take screenshots, upload all to gitHub, and submit through BCS
 
 
 ### BONUS
