@@ -8,7 +8,9 @@ var fs = require("fs")
 // REQUEST (require that node use built-in "Request" functionality--use for OMDB and Bandsintown APIs)
 var request = require('request'); 
 
-// I haven't gotten to the point where I need to use this
+// Load the inquirer package
+var inquirer = require("inquirer");
+
 // MOMENT (require that node use built-in "Moment" functionality)
 var moment = require('moment');
 moment().format();
@@ -88,6 +90,31 @@ spotify.search({
 
 // OMDB require function------------------------------------------------------------------------------------------------------------
 var omdbAPI = 'http://www.omdbapi.com/?t=' + userQuery + '&plot=short&apikey=trilogy'
+
+// Listening event to see what user inputs
+inquirer.prompt([
+
+    {
+      type: "input",
+      name: "userInput",
+      message: "Search for a song, concert, or movie by copying and pasting the following code and replacing the content between the < > with your own search: node liri.js concertThis <artist/band name here>  OR  node liri.js spotifyThisSong <song name here>  OR  node liri.js movie-this <movie name here>"
+    }
+  
+  // After the prompt, store the user's response in a variable called location.
+  ]).then(function(userQuery) {
+    
+    // Then use the Google Geocoder to Geocode the address
+    geocoder.geocode(location.userInput, function(err, data) {
+        if err {
+            console.log("Error: " + err);
+        }
+      console.log(JSON.stringify(data, null, 2));
+    });
+  
+  });
+  
+  
+
 
 // implement the OMDB API call request
 request(omdbAPI, function (error, response, body) {
