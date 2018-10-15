@@ -13,43 +13,130 @@ var inquirer = require("inquirer");
 
 // MOMENT (require that node use built-in "Moment" functionality)
 var moment = require('moment');
-moment().format();
+// moment().format();
+
+// SPOTIFY (require that node use the node-spotify-api)
+var Spotify = require('node-spotify-api');
+
+// import the Spotify keys from the keys.js file
+var keys = require("./keys.js");
+// access spotify keys in .env file
+var spotify = new Spotify(keys.spotify);
 
 
-// FUNCTIONS FOR THE USER TO INPUT--------------------------------------------------------------------------------------------------
-// "CONCERT-THIS" command (use the userQuery to get the name and location of the venue, and date of the Event (use moment to format date: "MM/DD/YYYY")
-function concertThis(venueName, venueLocation, dateTime) {
-    this.venueName = "venue.name";
-    this.venueLocation = "venue.city" + ", " + "venue.region";
-    this.dateTime = datetime;
-}
+// GLOBAL VARIABLES-----------------------------------------------------------------------------------------------------------------
+// process the arguments taken in the terminal starting with the 3 one since 1 and 2 aren't useful to us
+var nodeArgs = process.argv.slice(2);
+// assign "command" to the new first node argument in the array (which is now the concert-this, spotify-this-song, movie-this commands, and do-what-it-says commands)
+var command = nodeArgs[0];
+// assigns "userInput" to new the second node argument in the array (which is now the artist, movie, or song the user searches)
+var userInput = nodeArgs.slice(1).join("+");
+// console.log(userInput);
+
+
+// "CONCERT-THIS" COMMAND----------------------------------------------------------------------------------------------------------
+// (use the userQuery to get the name and location of the venue, and date of the Event (use moment to format date: "MM/DD/YYYY")
+function concertThis(userQuery) {
+    if (userQuery === undefined) {
+        userQuery = "Backstreet+Boys"
+    };
+    // create bandsintownURL that uses the userQuery to complete the URL
+    var bandsintownURL = 'https://rest.bandsintown.com/artists/' + userQuery + '/events?app_id=3cc8f67ce1372e99e403cc28219f8fad'
+    // implement the bandintown API call request
+    request(bandsintownURL, function (error, response, body) {
+        // append search results to the "log.txt" file
+        fs.appendFile('log.txt', userQuery, function (error) {
+            if (error) {
+                return console.log(('An error has occurred while getting the concert data:', error);
+            }
+        });
+        // console.log(JSON.parse(body))
+        if (!error && response.statusCode === 200) {
+            // shorter variables to use in place of concert JSON data in code
+            var concertBody = JSON.parse(body)[0];
+            var venueInfo = concertBody.venue;
+            var timeInfo = concertBody.datetime;
+            // Split concert "datetime" string into two pieces and reformat for easier viewing
+            var timeArray = timeInfo.split("T")
+            var standardTime = moment(timeArray[1], "HH:mm:ss A").format("h:mm")
+            var standardDate = moment(timeArray[0]).format('MM/DD/YY');
+            // concert info to print in the terminal if the concert-this <bandname> are used
+            console.log("The " + userQuery + " concert is at: " + venueInfo.name);
+            console.log("The concert location is in: " + venueInfo.city + ", " + venueInfo.region + " " + venueInfo.country);
+            console.log("The concert is on " + standardDate + " and starts at: " + standardTime + "pm local time");
+        } else {
+            console.log('An error has occurred while getting the concert data:', error); // Print the error if one occurred
+        }
+    });
+};
+
 
 // "SPOTIFY-THIS-SONG" command (use the user's input to get the artist, song name, a preview link of the song from Spotify, and the album)
-function spotifyThisSong(artist, songName, spotifyPreview, albumName) {
-    this.artist = "items.album.artists.name";
-    this.songName = "tracks.items.name";
-    this.spotifyPreview =  "items.preview_url";
-    this.albumName =  "items.album.name";
-  }
-  if userQuery = 0 {
-      userQuery = "I saw the sign";
-  }
+function spotifyThisSong(userQuery) {
+    if (userQuery === undefined) {
+        userQuery = "I+saw+the+sign";
+    }
+    // create bandsintownURL that uses the userQuery to complete the URL
+    var spotifyURL = 'https://api.spotify.com/v1/search?query=' + userQuery + '&type=track&market=US&offset=0&limit=5'
+    // implement the bandintown API call request
+    request(spotifyURL, function (error, response, body) {
+        // get spotify keys from .env file
+        fs.readFile(".env", function(err, data) {
+            // If there's an error reading the file, we log it and return immediately
+            if (err) {
+              return console.log('An error occurred while accessing the .env file: " + err);
+            }
+        // append search results to the "log.txt" file
+        fs.appendFile('log.txt', userQuery, function(error, data) {
+            if (error) {
+                return console.log('An error has occurred white getting the song data: ' + error);
+            }
+            // for (i = 0; i < data.tracks.items.length; i++) {
+            //     console.log(data.tracks.items[i]);
+            // } 
+        });
+        if (!error && response.statusCode === 200) {
+            // shorter variables to use in place of concert JSON data in code
+            var musicBody = JSON.parse(response)[0];
+            var itemsInfo = musicBody.items;
+            var albumInfo = itemsInfo.album;
+            var artistsInfo = albumInfo.artists
+            // concert info to print in the terminal if the spotify-this-song <song name> are used
+            console.log(userQuery + " is by: " + artistsInfo.name);
+            console.log("The song name is: " + itemsInfo.name);
+            console.log("Check out a preview of the song at: " + itemsInfo.preview_url);
+            console.log("This song is from the album: " + albumInfo.name)
+        } else {
+            console.log('An error has occurred while getting the song data: ', error); // Print the error if one occurred
+        }
+    });
+};  
+
 
 // "MOVIE-THIS" command (use the user's input to get the movie title, release year, IMDB and Rotten Tomatoes ratings, country where produced, and language, plot, and actors in the movie.
-function movieThis(title, releaseYear, ratingIMDB, ratingRotTom, country, language, plot, actors) {
-    this.title = "Title";
-    this.releaseYear = "Release";
-    this.ratingIMDB =  "imdbRating";
-    this.ratingRotTom =  "";
-    this.country = "Country";
-    this.language = "Language";
-    this.plot = "Plot";
-    this.actors = "Actors";
-}
-if !userQuery {
-    userQuery = "Mr. Nobody";
-    console.log("If you haven't watched Mr. Nobody, then you should: <http://www.imdb.com/title/tt0485947/>" + "\nIt's on Netflix!")
-}
+function movieThis(userQuery) {
+    // OMDB require function------------------------------------------------------------------------------------------------------------
+    var omdbAPI = 'http://www.omdbapi.com/?t=' + userQuery + '&plot=short&apikey=trilogy'
+    // if statement to add a default value if the user doesn't enter one
+    if (userQuery === undefined) {
+        userQuery = "Mr.+Nobody";
+        console.log("If you haven't watched Mr. Nobody, then you should: <http://www.imdb.com/title/tt0485947/>" + "\nIt's on Netflix!")
+    }
+    // implement the OMDB API call request
+    request(omdbAPI, function (error, response, body) {
+    if (!error && response.statusCode === 200) {
+        console.log(userQuery + " was realeased in: " + JSON.parse(body).Release);
+        console.log("IMDB gave it: " + JSON.parse(body).imdbRating);
+        console.log("Rotten Tomatoes gave it: " + JSON.parse(body).Ratings[1].Value);
+        console.log(userQuery + " was filmed in: " + JSON.parse(body).Country);
+        console.log("The language spoken in " + userQuery + " is: " + JSON.parse(body).Language);
+        console.log("The plot is: " + JSON.parse(body).Plot);
+        console.log("Top-billed actors include: " + JSON.parse(body).Actors)
+    } else {
+        console.log('An error has occurred while getting the movie data:', error); // Print the error if one occurred
+    };
+    })
+}; 
 
 // "DO-WHAT-IT-SAYS" command (use the song name from the random.txt file to choose what to display for the user)
 function doWhatItSays() {
@@ -57,100 +144,12 @@ function doWhatItSays() {
 };
 
 
-// GLOBAL VARIABLES-----------------------------------------------------------------------------------------------------------------
-// process the arguments taken in the terminal
-var nodeArgs = process.argv;
-
-// user's input (will be used for the concert-this, spotify-this-song, and movie-this commands)
-var userQuery = "";
-
-
-// SPOTIFY VARIABLES, REQUIREMENTS, AND FUNCTIONS-----------------------------------------------------------------------------------
-// SPOTIFY (require that node use the node-spotify-api)
-var Spotify = require('node-spotify-api');
-
-// import the Spotify keys from the keys.js file
-var Spotify = require("./keys.js");
-
-// access spotify keys in .env file
-var spotify = new Spotify(keys.spotify);
-
-// code from spotify api documentation--I'm not sure if i need it
-spotify.search({ 
-    type: 'track', 
-    query: 'All the Small Things' 
-    }, 
-    function(err, data) {
-        if (err) {
-            return console.log('Error occurred: ' + err);
-        }
-    console.log(data); 
-});
-
-
-// OMDB require function------------------------------------------------------------------------------------------------------------
-var omdbAPI = 'http://www.omdbapi.com/?t=' + userQuery + '&plot=short&apikey=trilogy'
-
-// Listening event to see what user inputs
-inquirer.prompt([
-
-    {
-      type: "input",
-      name: "userInput",
-      message: "Search for a song, concert, or movie by copying and pasting the following code and replacing the content between the < > with your own search: node liri.js concertThis <artist/band name here>  OR  node liri.js spotifyThisSong <song name here>  OR  node liri.js movie-this <movie name here>"
-    }
-  
-  // After the prompt, store the user's response in a variable called location.
-  ]).then(function(userQuery) {
-    
-    // Then use the Google Geocoder to Geocode the address
-    geocoder.geocode(location.userInput, function(err, data) {
-        if err {
-            console.log("Error: " + err);
-        }
-      console.log(JSON.stringify(data, null, 2));
-    });
-  
-  });
-  
-  
-
-
-// implement the OMDB API call request
-request(omdbAPI, function (error, response, body) {
-    if (!error && response.statusCode === 200) {
-        console.log(userQuery + " was realease in: " + JSON.parse(body).Release);
-        console.log("The IMDB rating is: " + JSON.parse(body).imdbRating);
-        console.log("The Rotten Tomatoes rating is: " + JSON.parse(body).Ratings[1].Value);
-        console.log(userQuery + " was filmed in: " + JSON.parse(body).Country);
-        console.log(userQuery + " is in: " + JSON.parse(body).Language);
-        console.log("The plot is: " + JSON.parse(body).Plot);
-        console.log("The top-billed actors include: " + JSON.parse(body).Actors)
-    } else {
-        console.log('Error:', error); // Print the error if one occurred
-    };
-});
-
-
-// BANDSINTOWN require function-----------------------------------------------------------------------------------------------------
-// create bandsintownURL that uses the userQuery to complete the URL
-var bandsintownURL = 'https://rest.bandsintown.com/artists/' + userQuery + '/events?app_id=3cc8f67ce1372e99e403cc28219f8fad'
-
-
-// implement the bandintown API call request
-request(bandsintownURL, function (error, response, body) {
-    // append search results to the "log.txt" file
-    fs.appendFile('log.txt', userQuery, function (err) {
-        if (err) {
-            console.log("Error: " + err);
-        }
-    });
-    
-    if (!error && response.statusCode === 200) {
-        console.log("The " + userQuery + " concert is at: " + JSON.parse(body).venue);
-        console.log("The concert location is in: " + JSON.parse(body).venue.city + ", " + venue.region + " " + venue.country);
-        console.log("The concert starts at: " + JSON.parse(body).datetime);
-    } else {
-        console.log('Error:', error); // Print the error if one occurred
-    }
-});
+// DETERMINE COMMAND TO RUN AND CALL IT
+// the (/\+/g,' ') code replaces the plus signs in multi-word searches with spaces instead
+if (command === "movie-this") {
+    movieThis(userInput.replace(/\+/g,' '))
+} else if (command === "spotify-this-song") {
+    spotifyThisSong(userInput.replace(/\+/g,' '))
+} else if (command === "concert-this") {
+    concertThis(userInput.replace(/\+/g,' '))
+};
