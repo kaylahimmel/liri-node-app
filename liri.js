@@ -8,8 +8,8 @@ var fs = require("fs")
 // REQUEST (require that node use built-in "Request" functionality--use for OMDB and Bandsintown APIs)
 var request = require('request'); 
 
-// Load the inquirer package
-var inquirer = require("inquirer");
+// // Load the inquirer package
+// var inquirer = require("inquirer");
 
 // MOMENT (require that node use built-in "Moment" functionality)
 var moment = require('moment');
@@ -20,6 +20,7 @@ var Spotify = require('node-spotify-api');
 
 // import the Spotify keys from the keys.js file
 var keys = require("./keys.js");
+
 // access spotify keys in .env file
 var spotify = new Spotify(keys.spotify);
 
@@ -27,11 +28,15 @@ var spotify = new Spotify(keys.spotify);
 // GLOBAL VARIABLES-----------------------------------------------------------------------------------------------------------------
 // process the arguments taken in the terminal starting with the 3 one since 1 and 2 aren't useful to us
 var nodeArgs = process.argv.slice(2);
+
 // assign "command" to the new first node argument in the array (which is now the concert-this, spotify-this-song, movie-this commands, and do-what-it-says commands)
 var command = nodeArgs[0];
+
 // assigns "userInput" to new the second node argument in the array (which is now the artist, movie, or song the user searches)
 var userInput = nodeArgs.slice(1).join("+");
-// console.log(userInput);
+
+// error variable
+var errorMsg = "An error has occurred while getting the "
 
 
 // "CONCERT-THIS" COMMAND----------------------------------------------------------------------------------------------------------
@@ -47,8 +52,8 @@ function concertThis(userQuery) {
         // append search results to the "log.txt" file
         fs.appendFile('log.txt', userQuery, function (error) {
             if (error) {
-                return console.log(('An error has occurred while getting the concert data:', error);
-            }
+                return console.log(errorMsg + 'concert data: ', error)
+            } 
         });
         // console.log(JSON.parse(body))
         if (!error && response.statusCode === 200) {
@@ -65,7 +70,7 @@ function concertThis(userQuery) {
             console.log("The concert location is in: " + venueInfo.city + ", " + venueInfo.region + " " + venueInfo.country);
             console.log("The concert is on " + standardDate + " and starts at: " + standardTime + "pm local time");
         } else {
-            console.log('An error has occurred while getting the concert data:', error); // Print the error if one occurred
+            console.log(errorMsg + 'concert data: ', error) // Print the error if one occurred
         }
     });
 };
@@ -84,34 +89,34 @@ function spotifyThisSong(userQuery) {
         fs.readFile(".env", function(err, data) {
             // If there's an error reading the file, we log it and return immediately
             if (err) {
-              return console.log('An error occurred while accessing the .env file: " + err);
+              return console.log(errorMsg + 'keys from the .env file: ' + err)
+            } 
+            // append search results to the "log.txt" file
+            fs.appendFile('log.txt', userQuery, function(error, data) {
+                if (error) {
+                    return console.log(errorMsg + 'song data: ' + error)
+                }
+                // for (i = 0; i < data.tracks.items.length; i++) {
+                //     console.log(data.tracks.items[i]);
+                // } 
+            });
+            if (!error && response.statusCode === 200) {
+                // shorter variables to use in place of concert JSON data in code
+                var musicBody = JSON.parse(response)[0];
+                var itemsInfo = musicBody.items;
+                var albumInfo = itemsInfo.album;
+                var artistsInfo = albumInfo.artists
+                // concert info to print in the terminal if the spotify-this-song <song name> are used
+                console.log(userQuery + " is by: " + artistsInfo.name);
+                console.log("The song name is: " + itemsInfo.name);
+                console.log("Check out a preview of the song at: " + itemsInfo.preview_url);
+                console.log("This song is from the album: " + albumInfo.name)
+            } else {
+                console.log(errorMsg + 'song data: ', error) // Print the error if one occurred
             }
-        // append search results to the "log.txt" file
-        fs.appendFile('log.txt', userQuery, function(error, data) {
-            if (error) {
-                return console.log('An error has occurred white getting the song data: ' + error);
-            }
-            // for (i = 0; i < data.tracks.items.length; i++) {
-            //     console.log(data.tracks.items[i]);
-            // } 
         });
-        if (!error && response.statusCode === 200) {
-            // shorter variables to use in place of concert JSON data in code
-            var musicBody = JSON.parse(response)[0];
-            var itemsInfo = musicBody.items;
-            var albumInfo = itemsInfo.album;
-            var artistsInfo = albumInfo.artists
-            // concert info to print in the terminal if the spotify-this-song <song name> are used
-            console.log(userQuery + " is by: " + artistsInfo.name);
-            console.log("The song name is: " + itemsInfo.name);
-            console.log("Check out a preview of the song at: " + itemsInfo.preview_url);
-            console.log("This song is from the album: " + albumInfo.name)
-        } else {
-            console.log('An error has occurred while getting the song data: ', error); // Print the error if one occurred
-        }
-    });
-};  
-
+    });  
+};
 
 // "MOVIE-THIS" command (use the user's input to get the movie title, release year, IMDB and Rotten Tomatoes ratings, country where produced, and language, plot, and actors in the movie.
 function movieThis(userQuery) {
@@ -133,7 +138,7 @@ function movieThis(userQuery) {
         console.log("The plot is: " + JSON.parse(body).Plot);
         console.log("Top-billed actors include: " + JSON.parse(body).Actors)
     } else {
-        console.log('An error has occurred while getting the movie data:', error); // Print the error if one occurred
+        console.log(errorMsg + 'movie data:', error) // Print the error if one occurred
     };
     })
 }; 
