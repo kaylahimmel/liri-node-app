@@ -21,7 +21,7 @@ var Spotify = require('node-spotify-api');
 // import the Spotify keys from the keys.js file
 var keys = require("./keys.js");
 
-// access spotify keys in .env file
+// initialize the Spotify session
 var spotify = new Spotify(keys.spotify);
 
 
@@ -78,45 +78,30 @@ function concertThis(userQuery) {
 
 // "SPOTIFY-THIS-SONG" command (use the user's input to get the artist, song name, a preview link of the song from Spotify, and the album)
 function spotifyThisSong(userQuery) {
-    if (userQuery === undefined) {
-        userQuery = "I+saw+the+sign";
-    }
-    // create bandsintownURL that uses the userQuery to complete the URL
-    var spotifyURL = 'https://api.spotify.com/v1/search?query=' + userQuery + '&type=track&market=US&offset=0&limit=5'
-    // implement the bandintown API call request
-    request(spotifyURL, function (error, response, body) {
-        // get spotify keys from .env file
-        fs.readFile(".env", function(err, data) {
-            // If there's an error reading the file, we log it and return immediately
-            if (err) {
-              return console.log(errorMsg + 'keys from the .env file: ' + err)
+    spotify.search(
+        {
+            type: "track",
+            query: userQuery 
+        },
+        function(err, data) {
+            if(err) {
+                return console.log("There's an error with your song search: " + err)
             } 
-            // append search results to the "log.txt" file
-            fs.appendFile('log.txt', userQuery, function(error, data) {
-                if (error) {
-                    return console.log(errorMsg + 'song data: ' + error)
-                }
-                // for (i = 0; i < data.tracks.items.length; i++) {
-                //     console.log(data.tracks.items[i]);
-                // } 
-            });
-            if (!error && response.statusCode === 200) {
-                // shorter variables to use in place of concert JSON data in code
-                var musicBody = JSON.parse(response)[0];
-                var itemsInfo = musicBody.items;
-                var albumInfo = itemsInfo.album;
-                var artistsInfo = albumInfo.artists
-                // concert info to print in the terminal if the spotify-this-song <song name> are used
-                console.log(userQuery + " is by: " + artistsInfo.name);
-                console.log("The song name is: " + itemsInfo.name);
-                console.log("Check out a preview of the song at: " + itemsInfo.preview_url);
-                console.log("This song is from the album: " + albumInfo.name)
-            } else {
-                console.log(errorMsg + 'song data: ', error) // Print the error if one occurred
+            var songs = data.tracks.items;
+        
+            for (var i = 0; i < 10; i++) {
+                console.log(userQuery + " is by: " + songs[i].artists.map(function(artist) {
+                    return artist.name
+                })
+                );
+                console.log("The song name is: " + songs[i].name);
+                console.log("Check out a preview of the song at: " + songs[i].preview_url);
+                console.log("This song is from the album: " + songs[i].album.name)
+                console.log("\n-----------------------------------------------------------------------\n")
             }
-        });
-    });  
+    });
 };
+
 
 // "MOVIE-THIS" command (use the user's input to get the movie title, release year, IMDB and Rotten Tomatoes ratings, country where produced, and language, plot, and actors in the movie.
 function movieThis(userQuery) {
