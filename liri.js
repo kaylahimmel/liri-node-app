@@ -8,9 +8,6 @@ var fs = require("fs")
 // REQUEST (require that node use built-in "Request" functionality--use for OMDB and Bandsintown APIs)
 var request = require('request'); 
 
-// // Load the inquirer package
-// var inquirer = require("inquirer");
-
 // MOMENT (require that node use built-in "Moment" functionality)
 var moment = require('moment');
 // moment().format();
@@ -20,9 +17,6 @@ var Spotify = require('node-spotify-api');
 
 // import the Spotify keys from the keys.js file
 var keys = require("./keys.js");
-
-// initialize the Spotify session
-var spotify = new Spotify(keys.spotify);
 
 
 // GLOBAL VARIABLES-----------------------------------------------------------------------------------------------------------------
@@ -38,24 +32,70 @@ var userInput = nodeArgs.slice(1).join("+");
 // error variable
 var errorMsg = "An error has occurred while getting the "
 
+// initialize the Spotify session
+var spotify = new Spotify(keys.spotify);
+
+// function written out here so it doesn't have to be embedded in the console.log
+var getArtistNames = function(artist) {
+    return artist.name;
+};
+
+
+// "SPOTIFY-THIS-SONG" command (use the user's input to get the artist, song name, a preview link of the song from Spotify, and the album)
+function findSong(userQuery) {
+    if (userQuery === undefined || null) {
+        userquery = "What's my age again";
+    }
+    
+    spotify.search(
+        {
+            type: "track",
+            query: userQuery 
+        },
+        
+        function(error, data) {
+            if (error) {
+                return console.log(error)
+            };
+            // The full response object
+            var songs = data;
+            
+            // append search results to the "log.txt" file
+            fs.appendFile('log.txt', userQuery + ' (song search)\n', function(error) {
+                if (error) {
+                    return console.log(error)
+                } 
+            });
+
+            // variable to use instead of the full dot notation path
+            var songData = songs.tracks.items;
+            
+            // show "songData" for the first 4 songs that return in the the search
+            for (var i = 0; i < 4; i++) {
+                console.log("The song " + songData[i].name + " is from the album " + songData[i].album.name + 
+                    " and is by " + songData[i].artists.map(getArtistNames) + ". Here's a preview: " + songData[i].preview_url);
+                console.log("\n-----------------------------------------------------------------------\n")
+            };
+        })
+};
+
 
 // "CONCERT-THIS" COMMAND----------------------------------------------------------------------------------------------------------
 // (use the userQuery to get the name and location of the venue, and date of the Event (use moment to format date: "MM/DD/YYYY")
-function concertThis(userQuery) {
+function findConcert(userQuery) {
     if (userQuery === undefined) {
-        userQuery = "Backstreet+Boys"
+        userQuery = "Kitten"
     };
     // create bandsintownURL that uses the userQuery to complete the URL
     var bandsintownURL = 'https://rest.bandsintown.com/artists/' + userQuery + '/events?app_id=3cc8f67ce1372e99e403cc28219f8fad'
     // implement the bandintown API call request
     request(bandsintownURL, function (error, response, body) {
         // append search results to the "log.txt" file
-        fs.appendFile('log.txt', userQuery, function (error) {
+        fs.appendFile('log.txt', userQuery + ' (concert search)\n', function(error) {
             if (error) {
-                return console.log(errorMsg + 'concert data: ', error)
+                return console.log(error)
             } 
         });
-        // console.log(JSON.parse(body))
         if (!error && response.statusCode === 200) {
             // shorter variables to use in place of concert JSON data in code
             var concertBody = JSON.parse(body)[0];
@@ -66,45 +106,18 @@ function concertThis(userQuery) {
             var standardTime = moment(timeArray[1], "HH:mm:ss A").format("h:mm")
             var standardDate = moment(timeArray[0]).format('MM/DD/YY');
             // concert info to print in the terminal if the concert-this <bandname> are used
-            console.log("The " + userQuery + " concert is at: " + venueInfo.name);
-            console.log("The concert location is in: " + venueInfo.city + ", " + venueInfo.region + " " + venueInfo.country);
-            console.log("The concert is on " + standardDate + " and starts at: " + standardTime + "pm local time");
+            console.log("The next " + userQuery + " concert is at " + venueInfo.name + " in " + venueInfo.city + ", " + 
+                venueInfo.region + " on " + standardDate + " and it starts at " + standardTime + "pm local time.");
+            console.log("\n-----------------------------------------------------------------------\n")
         } else {
-            console.log(errorMsg + 'concert data: ', error) // Print the error if one occurred
+            console.log(error) // Print the error if one occurred
         }
     });
 };
 
 
-// "SPOTIFY-THIS-SONG" command (use the user's input to get the artist, song name, a preview link of the song from Spotify, and the album)
-function spotifyThisSong(userQuery) {
-    spotify.search(
-        {
-            type: "track",
-            query: userQuery 
-        },
-        function(err, data) {
-            if(err) {
-                return console.log("There's an error with your song search: " + err)
-            } 
-            var songs = data.tracks.items;
-        
-            for (var i = 0; i < 10; i++) {
-                console.log(userQuery + " is by: " + songs[i].artists.map(function(artist) {
-                    return artist.name
-                })
-                );
-                console.log("The song name is: " + songs[i].name);
-                console.log("Check out a preview of the song at: " + songs[i].preview_url);
-                console.log("This song is from the album: " + songs[i].album.name)
-                console.log("\n-----------------------------------------------------------------------\n")
-            }
-    });
-};
-
-
 // "MOVIE-THIS" command (use the user's input to get the movie title, release year, IMDB and Rotten Tomatoes ratings, country where produced, and language, plot, and actors in the movie.
-function movieThis(userQuery) {
+function findMovie(userQuery) {
     // OMDB require function------------------------------------------------------------------------------------------------------------
     var omdbAPI = 'http://www.omdbapi.com/?t=' + userQuery + '&plot=short&apikey=trilogy'
     // if statement to add a default value if the user doesn't enter one
@@ -114,32 +127,64 @@ function movieThis(userQuery) {
     }
     // implement the OMDB API call request
     request(omdbAPI, function (error, response, body) {
-    if (!error && response.statusCode === 200) {
-        console.log(userQuery + " was realeased in: " + JSON.parse(body).Release);
-        console.log("IMDB gave it: " + JSON.parse(body).imdbRating);
-        console.log("Rotten Tomatoes gave it: " + JSON.parse(body).Ratings[1].Value);
-        console.log(userQuery + " was filmed in: " + JSON.parse(body).Country);
-        console.log("The language spoken in " + userQuery + " is: " + JSON.parse(body).Language);
-        console.log("The plot is: " + JSON.parse(body).Plot);
-        console.log("Top-billed actors include: " + JSON.parse(body).Actors)
-    } else {
-        console.log(errorMsg + 'movie data:', error) // Print the error if one occurred
-    };
+        
+        fs.appendFile('log.txt', userQuery + ' (movie search)\n', function(error) {
+            if (error) {
+                return console.log(error)
+            } 
+        });
+
+        // variable to use instead of the full dot notation path
+        var parseResults = JSON.parse(body);
+        var rotTomRating = parseResults.Ratings[1];
+        var RatingValue = rotTomRating.Value;
+
+        // display parsed results
+        if (!error && response.statusCode === 200) {
+            console.log(userQuery + " was realeased in " +  parseResults.Language + " in " + parseResults.Release + 
+                " and was filmed in " + parseResults.Country + ".")
+            console.log("The plot is: " + parseResults.Plot + ". The top-billed actors include: " + parseResults.Actors + ".");
+            console.log("IMDB gave it " + parseResults.imdbRating + " out of 10 while Rotten Tomatoes gave it " + RatingValue);
+            console.log("\n-----------------------------------------------------------------------\n")
+        } else {
+            console.log(error) // Print the error if one occurred
+        };
     })
 }; 
 
+
 // "DO-WHAT-IT-SAYS" command (use the song name from the random.txt file to choose what to display for the user)
-function doWhatItSays() {
-    console.log(require("/random.txt"));
+function runRandomTxt() {
+    fs.readFile("./random.txt", "utf-8", function(error, data) {
+        if (error) {
+            return console.log(error)
+        };
+
+        var randomSplit = data.split(",");
+        
+        var fileCommand = randomSplit[0];
+
+        var fileQuery = randomSplit[1];
+
+        if (fileCommand === "movie-this") {
+            findMovie(fileQuery)
+        } else if (fileCommand === "spotify-this-song") {
+            findSong(fileQuery)
+        } else if (fileCommand === "concert-this") {
+            findConcert(fileQuery)
+        };
+    })
 };
 
 
 // DETERMINE COMMAND TO RUN AND CALL IT
 // the (/\+/g,' ') code replaces the plus signs in multi-word searches with spaces instead
 if (command === "movie-this") {
-    movieThis(userInput.replace(/\+/g,' '))
+    findMovie(userInput.replace(/\+/g,' '))
 } else if (command === "spotify-this-song") {
-    spotifyThisSong(userInput.replace(/\+/g,' '))
+    findSong(userInput.replace(/\+/g,' '))
 } else if (command === "concert-this") {
-    concertThis(userInput.replace(/\+/g,' '))
+    findConcert(userInput.replace(/\+/g,' '))
+} else if (command === "do-what-it-says") {
+    runRandomTxt()
 };
