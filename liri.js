@@ -44,7 +44,7 @@ var getArtistNames = function(artist) {
 // "SPOTIFY-THIS-SONG" command (use the user's input to get the artist, song name, a preview link of the song from Spotify, and the album)
 function findSong(userQuery) {
     if (userQuery === undefined || null) {
-        userquery = "What's my age again";
+        userquery = "The Sign";
     }
     
     spotify.search(
@@ -122,8 +122,7 @@ function findMovie(userQuery) {
     var omdbAPI = 'http://www.omdbapi.com/?t=' + userQuery + '&plot=short&apikey=trilogy'
     // if statement to add a default value if the user doesn't enter one
     if (userQuery === undefined) {
-        userQuery = "Mr.+Nobody";
-        console.log("If you haven't watched Mr. Nobody, then you should: <http://www.imdb.com/title/tt0485947/>" + "\nIt's on Netflix!")
+        userQuery = "Mr.+Nobody"
     }
     // implement the OMDB API call request
     request(omdbAPI, function (error, response, body) {
